@@ -47,7 +47,7 @@ public class Mp3TagChanger {
 		SwingUtilities.invokeAndWait(() -> {
 			final JDialog dialog = new JDialog();
 			dialog.setAlwaysOnTop(true);
-			JOptionPane.showMessageDialog(dialog, "Changed files are in " + saveDir.getAbsolutePath() + "folder!", "done!", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(dialog, "Changed files are in following folder :\n" + saveDir.getAbsolutePath(), "done!", JOptionPane.INFORMATION_MESSAGE);
 			dialog.dispose();
 		});
 		
