@@ -20,8 +20,21 @@ public class Mp3TagChanger {
 	
 	private static boolean failedFlag = false;
 	
+	private static String artistDelimiter = "-";
+	private static int artistIndex = 0;
+	
 	public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 
+		if(args.length != 0) {
+			for(String str : args) {
+				if(str.startsWith("--artistDelimiter=")) {
+					artistDelimiter = str.split("=")[1];
+				} else if(str.startsWith("--artistIndex=")) {
+					artistIndex = Integer.parseInt(str.split("=")[1]);
+				}
+			}
+		}
+		
 		JFileChooser jfc = new JFileChooser();
 		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		jfc.setDialogTitle("Choose directory that has music!");
@@ -89,7 +102,7 @@ public class Mp3TagChanger {
 	}
 	
 	private static String getTitle(String fileName) { return fileName.substring(0, fileName.lastIndexOf(".")); }
-	private static String getArtist(String fileName) { return fileName.substring(0, fileName.indexOf("-")).trim(); }
+	private static String getArtist(String fileName) { return fileName.split(artistDelimiter)[artistIndex]; }
 	private static String getDefaultAlbum() { return "."; }
 	
 	private static boolean isMp3(File f) {
