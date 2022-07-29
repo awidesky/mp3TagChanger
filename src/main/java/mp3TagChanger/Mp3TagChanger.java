@@ -31,6 +31,7 @@ public class Mp3TagChanger {
 	
 	
 	private static boolean verbose = false;
+	private static boolean overwrite = false;
 	private static AtomicLong cnt = new AtomicLong(0L);
 	private static JLabel loadingStatus;
 	private static JProgressBar progress;
@@ -47,6 +48,8 @@ public class Mp3TagChanger {
 					artistIndex = Integer.parseInt(str.split("=")[1]);
 				} else if(str.startsWith("--verbose=")) {
 					verbose = Boolean.parseBoolean(str.split("=")[1]);
+				} else if(str.startsWith("--overwrite=")) {
+					overwrite = Boolean.parseBoolean(str.split("=")[1]);
 				}
 			}
 		}
@@ -139,12 +142,12 @@ public class Mp3TagChanger {
 				mp3file.setId3v2Tag(id3v2Tag);
 			}
 			try {
-				if(id3v2Tag.getArtist() == null) id3v2Tag.setArtist(getArtist(f.getName()));
+				if(overwrite || id3v2Tag.getArtist() == null) id3v2Tag.setArtist(getArtist(f.getName()));
 			} catch (StringIndexOutOfBoundsException ae) {
 				id3v2Tag.setArtist(".");
 			}
-			if(id3v2Tag.getTitle() == null) id3v2Tag.setTitle(getTitle(f.getName()));
-			if(id3v2Tag.getAlbum() == null) id3v2Tag.setAlbum(getDefaultAlbum());
+			if(overwrite || id3v2Tag.getTitle() == null) id3v2Tag.setTitle(getTitle(f.getName()));
+			if(overwrite || id3v2Tag.getAlbum() == null) id3v2Tag.setAlbum(getDefaultAlbum());
 			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName());
 		} catch (Exception e) {
 			setFailedFlag();
