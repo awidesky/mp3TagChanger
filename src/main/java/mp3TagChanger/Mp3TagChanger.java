@@ -16,7 +16,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.ID3v24Tag;
+import com.mpatric.mp3agic.ID3v23Tag;
 import com.mpatric.mp3agic.Mp3File;
 
 public class Mp3TagChanger {
@@ -137,8 +137,8 @@ public class Mp3TagChanger {
 			if (mp3file.hasId3v2Tag()) {
 				id3v2Tag = mp3file.getId3v2Tag();
 			} else {
-				// mp3 does not have an ID3v1 tag, let's create one..
-				id3v2Tag = new ID3v24Tag();
+				// mp3 does not have an ID3v2 tag, let's create one..
+				id3v2Tag = new ID3v23Tag();
 				mp3file.setId3v2Tag(id3v2Tag);
 			}
 			try {
