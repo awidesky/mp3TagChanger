@@ -147,7 +147,7 @@ public class Mp3TagChanger {
 				id3v2Tag.setArtist(".");
 			}
 			if(overwrite || id3v2Tag.getTitle() == null) id3v2Tag.setTitle(getTitle(f.getName()));
-			if(overwrite || id3v2Tag.getAlbum() == null) id3v2Tag.setAlbum(getDefaultAlbum());
+			if(overwrite || id3v2Tag.getAlbum() == null) id3v2Tag.setAlbum(f.getName());
 			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName());
 		} catch (Exception e) {
 			setFailedFlag();
@@ -168,7 +168,7 @@ public class Mp3TagChanger {
 	
 	private static String getTitle(String fileName) { return fileName.substring(0, fileName.lastIndexOf(".")); }
 	private static String getArtist(String fileName) { return (fileName.contains(artistDelimiter)) ? fileName.split(artistDelimiter)[artistIndex] : "."; } 
-	private static String getDefaultAlbum() { return "."; }
+	//private static String getDefaultAlbum() { return "."; }
 	
 	private static boolean isMp3(File f) {
 		return f.getName().endsWith(".mp3");
