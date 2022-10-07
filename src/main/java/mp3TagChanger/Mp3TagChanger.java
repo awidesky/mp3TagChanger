@@ -46,10 +46,10 @@ public class Mp3TagChanger {
 					artistDelimiter = str.split("=")[1];
 				} else if(str.startsWith("--artistIndex=")) {
 					artistIndex = Integer.parseInt(str.split("=")[1]);
-				} else if(str.startsWith("--verbose=")) {
-					verbose = Boolean.parseBoolean(str.split("=")[1]);
-				} else if(str.startsWith("--overwrite=")) {
-					overwrite = Boolean.parseBoolean(str.split("=")[1]);
+				} else if(str.equals("--verbose")) {
+					verbose = true;
+				} else if(str.equals("--overwrite")) {
+					overwrite = true;
 				}
 			}
 		}
