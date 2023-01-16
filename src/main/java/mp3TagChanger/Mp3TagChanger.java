@@ -36,7 +36,7 @@ public class Mp3TagChanger {
 	
 	private static final char[] stringArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvxyz0123456789".toCharArray();
 	
-	private static boolean showProgress = false;
+	private static boolean showProgress = true;
 	private static boolean overwrite = false;
 	private static AtomicLong cnt = new AtomicLong(0L); //TODO : Queue task that increase non-atomic cnt, and add dedicated thread to consume all tasks
 	private static JLabel loadingStatus;
@@ -52,8 +52,8 @@ public class Mp3TagChanger {
 					artistDelimiter = str.split("=")[1];
 				} else if(str.startsWith("--artistIndex=")) {
 					artistIndex = Integer.parseInt(str.split("=")[1]);
-				} else if(str.equals("--showProgress")) {
-					showProgress = true;
+				} else if(str.equals("--noShowProgress")) {
+					showProgress = false;
 				} else if(str.equals("--overwrite")) {
 					overwrite = true;
 				} else if(str.equals("--random")) {
