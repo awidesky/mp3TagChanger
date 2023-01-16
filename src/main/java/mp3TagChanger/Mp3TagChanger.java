@@ -36,9 +36,9 @@ public class Mp3TagChanger {
 	
 	private static final char[] stringArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvxyz0123456789".toCharArray();
 	
-	private static boolean verbose = false;
+	private static boolean showProgress = false;
 	private static boolean overwrite = false;
-	private static AtomicLong cnt = new AtomicLong(0L); //Queue task that increase non-atomic cnt, and add dedicated thread to consume all tasks
+	private static AtomicLong cnt = new AtomicLong(0L); //TODO : Queue task that increase non-atomic cnt, and add dedicated thread to consume all tasks
 	private static JLabel loadingStatus;
 	private static JProgressBar progress;
 	private static JFrame loadingFrame;
@@ -52,8 +52,8 @@ public class Mp3TagChanger {
 					artistDelimiter = str.split("=")[1];
 				} else if(str.startsWith("--artistIndex=")) {
 					artistIndex = Integer.parseInt(str.split("=")[1]);
-				} else if(str.equals("--verbose")) { //TODO : change to showProgress
-					verbose = true;
+				} else if(str.equals("--showProgress")) {
+					showProgress = true;
 				} else if(str.equals("--overwrite")) {
 					overwrite = true;
 				} else if(str.equals("--random")) {
@@ -84,7 +84,7 @@ public class Mp3TagChanger {
 		
 		targets = Arrays.stream(flist).parallel().filter(File::isFile).filter(Mp3TagChanger::isMp3).count();
 		
-		if(verbose) {
+		if(showProgress) {
 			showProgress();
 		}
 		
@@ -101,7 +101,7 @@ public class Mp3TagChanger {
 			});
 		}
 		
-		if (verbose) {
+		if (showProgress) {
 			loadingFrame.setVisible(false);
 			loadingFrame.dispose();
 		}
@@ -163,7 +163,7 @@ public class Mp3TagChanger {
 				dialog.dispose();
 			});
 		} finally {
-			if(verbose) {
+			if(showProgress) {
 				cnt.incrementAndGet();
 				SwingUtilities.invokeLater(Mp3TagChanger::updateUI);
 			}
