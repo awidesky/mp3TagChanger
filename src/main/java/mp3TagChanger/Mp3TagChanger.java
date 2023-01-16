@@ -5,7 +5,10 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.stream.Collector;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -29,10 +32,13 @@ public class Mp3TagChanger {
 	private static String artistDelimiter = "-";
 	private static int artistIndex = 0;
 	
+	private static BiConsumer<ID3v2, File> tagChanger = null;
+	
+	private static final char[] stringArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvxyz0123456789".toCharArray();
 	
 	private static boolean verbose = false;
 	private static boolean overwrite = false;
-	private static AtomicLong cnt = new AtomicLong(0L);
+	private static AtomicLong cnt = new AtomicLong(0L); //Queue task that increase non-atomic cnt, and add dedicated thread to consume all tasks
 	private static JLabel loadingStatus;
 	private static JProgressBar progress;
 	private static JFrame loadingFrame;
@@ -46,14 +52,18 @@ public class Mp3TagChanger {
 					artistDelimiter = str.split("=")[1];
 				} else if(str.startsWith("--artistIndex=")) {
 					artistIndex = Integer.parseInt(str.split("=")[1]);
-				} else if(str.equals("--verbose")) {
+				} else if(str.equals("--verbose")) { //TODO : change to showProgress
 					verbose = true;
 				} else if(str.equals("--overwrite")) {
 					overwrite = true;
-				}
+				} else if(str.equals("--random")) {
+					tagChanger = Mp3TagChanger::randomTagChanger;
+				} //TODO : add mesureTime, help
 			}
 		}
-			
+		
+		if(tagChanger == null) tagChanger = Mp3TagChanger::defualtTagChanger;
+		
 		JFileChooser jfc = new JFileChooser();
 		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		jfc.setDialogTitle("Choose directory that has music!");
@@ -141,13 +151,7 @@ public class Mp3TagChanger {
 				id3v2Tag = new ID3v23Tag();
 				mp3file.setId3v2Tag(id3v2Tag);
 			}
-			try {
-				if(overwrite || id3v2Tag.getArtist() == null) id3v2Tag.setArtist(getArtist(f.getName()));
-			} catch (StringIndexOutOfBoundsException ae) {
-				id3v2Tag.setArtist(".");
-			}
-			if(overwrite || id3v2Tag.getTitle() == null) id3v2Tag.setTitle(getTitle(f.getName()));
-			if(overwrite || id3v2Tag.getAlbum() == null) id3v2Tag.setAlbum(f.getName());
+			tagChanger.accept(id3v2Tag, f);
 			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName());
 		} catch (Exception e) {
 			setFailedFlag();
@@ -164,6 +168,31 @@ public class Mp3TagChanger {
 				SwingUtilities.invokeLater(Mp3TagChanger::updateUI);
 			}
 		}
+	}
+	
+	
+	private static void defualtTagChanger(ID3v2 tag, File f) {
+		try {
+			if(overwrite || tag.getArtist() == null) tag.setArtist(getArtist(f.getName()));
+		} catch (StringIndexOutOfBoundsException ae) {
+			tag.setArtist(".");
+		}
+		if(overwrite || tag.getTitle() == null) tag.setTitle(getTitle(f.getName()));
+		if(overwrite || tag.getAlbum() == null) tag.setAlbum(f.getName());
+	}
+	
+	private static void randomTagChanger(ID3v2 tag, File f) {
+		if(overwrite || tag.getArtist() == null) tag.setArtist(generateRandomString());
+		if(overwrite || tag.getTitle() == null) tag.setTitle(generateRandomString());
+		if(overwrite || tag.getAlbum() == null) tag.setAlbum(generateRandomString());
+	}
+	
+	private static String generateRandomString() {
+		return new Random().ints(10L, 0, stringArray.length).mapToObj(i -> stringArray[i]).collect(Collector.of(
+			    StringBuilder::new,
+			    StringBuilder::append,
+			    StringBuilder::append,
+			    StringBuilder::toString));
 	}
 	
 	private static String getTitle(String fileName) { return fileName.substring(0, fileName.lastIndexOf(".")); }
