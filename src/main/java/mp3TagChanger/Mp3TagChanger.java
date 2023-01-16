@@ -166,7 +166,7 @@ public class Mp3TagChanger {
 				mp3file.setId3v2Tag(id3v2Tag);
 			}
 			tagChanger.accept(id3v2Tag, f);
-			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName());
+			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName()); //TODO : bulk save task later for performance...?
 		} catch (Exception e) {
 			setFailedFlag();
 			e.printStackTrace();
