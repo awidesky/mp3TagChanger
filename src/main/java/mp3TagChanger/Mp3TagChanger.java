@@ -58,7 +58,8 @@ public class Mp3TagChanger {
 					overwrite = true;
 				} else if(str.equals("--random")) {
 					tagChanger = Mp3TagChanger::randomTagChanger;
-				} //TODO : add mesureTime, help
+				}//TODO : add help
+				//TODO : if not a valid option, error & print help
 			}
 		}
 		
@@ -87,15 +88,16 @@ public class Mp3TagChanger {
 		if(showProgress) {
 			showProgress();
 		}
-		
+		long startTime = System.currentTimeMillis();
 		Arrays.stream(flist).parallel().filter(File::isFile).filter(Mp3TagChanger::isMp3).forEach(Mp3TagChanger::setTag);
+		long time = System.currentTimeMillis() - startTime;
 		
 		if (!failedFlag) {
 			SwingUtilities.invokeAndWait(() -> {
 				final JDialog dialog = new JDialog();
 				dialog.setAlwaysOnTop(true);
 				JOptionPane.showMessageDialog(dialog,
-						"Changed files are in following folder :\n" + saveDir.getAbsolutePath(), "done!",
+						"Task done in " + formatMilliSecond(time) + "\nChanged files are in following folder :\n" + saveDir.getAbsolutePath(), "done!",
 						JOptionPane.INFORMATION_MESSAGE);
 				dialog.dispose();
 			});
@@ -107,6 +109,18 @@ public class Mp3TagChanger {
 		}
 	}
 
+	private static String formatMilliSecond(long ms) {
+		if(ms % 1000 != 0) {
+			return ms + "ms";
+		} else if((ms /= 1000) % 60 != 0) {
+			return ms + "sec";
+		} else if((ms /= 60) % 60 != 0) {
+			return ms + "min";
+		} else {
+			return ms/60 + "hour";
+		}
+	}
+	
 	private static void showProgress() {
 
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
