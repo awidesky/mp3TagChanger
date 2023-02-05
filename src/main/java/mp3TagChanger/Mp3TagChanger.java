@@ -47,16 +47,28 @@ public class Mp3TagChanger {
 
 		if(args.length != 0) {
 			for(String str : args) {
-				if(str.startsWith("--artistDelimiter=")) {
-					artistDelimiter = str.split("=")[1];
-				} else if(str.startsWith("--artistIndex=")) {
-					artistIndex = Integer.parseInt(str.split("=")[1]);
+				if(str.startsWith("--artistIndex=")) {
+				artistIndex = Integer.parseInt(str.split("=")[1]);
+				} else if(str.startsWith("--artistDelimiter=")) {
+					if(str.split("=").length != 2 || (artistDelimiter = str.split("=")[1]) == null) {
+						System.err.println("Invalid use of artistDelimiter : " + str);
+						System.err.println();
+						showHelp();
+						return;
+					}
 				} else if(str.equals("--overwrite")) {
 					overwrite = true;
 				} else if(str.equals("--random")) {
 					tagChanger = Mp3TagChanger::randomTagChanger;
-				}//TODO : add help
-				//TODO : if not a valid option, error & print help
+				} else if(str.equals("--help")) {
+					showHelp();
+					return;
+				} else {
+					System.err.println("Invalid command : " + str);
+					System.err.println();
+					showHelp();
+					return;
+				}
 			}
 		}
 		
@@ -105,6 +117,19 @@ public class Mp3TagChanger {
 		});
 	}
 
+	public static void showHelp() {
+		System.out.println("Usage : java -jar mp3TagChanger.jar [options]");
+		System.out.println("Options : ");
+		System.out.println("\t--help\tShow this help message\n");
+		System.out.println("\t--artistIndex=<index>\tIndex of artist name in name of mp3 file");
+		System.out.println("\t\t\t\tif artist name comes before song name, value should be 0(default). ex)\"The Beatles - Let it be.mp3\"");
+		System.out.println("\t\t\t\tif song name comes before artist name, value should be 1. ex)\"Let it be - The Beatles.mp3\"\n");
+		System.out.println("\t--artistDelimiter=<delimiter>\tSet delimiter between song name and artist.");
+		System.out.println("\t\t\t\t\tDefault is \"-\", so mp3 file name would be like : \"The Beatles - Let it be.mp3\"\n");
+		System.out.println("\t--overwrite\tOvewrite existing mp3 tag(title, artist, album)\n");
+		System.out.println("\t--random\tSet mp3 tag(title, artist, album) to random meaningless text\n");
+	}
+	
 	private static String formatMilliSecond(long ms) {
 		if(ms % 1000 != 0) {
 			return ms + "ms";
