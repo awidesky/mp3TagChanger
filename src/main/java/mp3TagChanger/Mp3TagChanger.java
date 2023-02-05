@@ -6,7 +6,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiConsumer;
 import java.util.stream.Collector;
 
@@ -38,11 +38,14 @@ public class Mp3TagChanger {
 	
 	private static boolean showProgress = true;
 	private static boolean overwrite = false;
-	private static AtomicLong cnt = new AtomicLong(0L); //TODO : Queue task that increase non-atomic cnt, and add dedicated thread to consume all tasks
+	private static long cnt = 0L;
 	private static JLabel loadingStatus;
 	private static JProgressBar progress;
 	private static JFrame loadingFrame;
 	
+	private static final Object CNTFLAG = new Object();
+	private static Thread counter;
+	private static ConcurrentLinkedQueue<Object> countQueue = new ConcurrentLinkedQueue<>();
 	
 	public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 
@@ -87,6 +90,16 @@ public class Mp3TagChanger {
 		
 		if(showProgress) {
 			showProgress();
+			counter = new Thread(() -> {
+				while(true) {
+					if(null != countQueue.poll()) {
+						cnt++;
+						SwingUtilities.invokeLater(Mp3TagChanger::updateUI);
+					}
+				}
+			});
+			counter.setDaemon(true);
+			counter.start();
 		}
 		long startTime = System.currentTimeMillis();
 		Arrays.stream(flist).parallel().filter(File::isFile).filter(Mp3TagChanger::isMp3).forEach(Mp3TagChanger::setTag);
@@ -145,9 +158,8 @@ public class Mp3TagChanger {
 		
 	}
 	private static void updateUI() {
-		long cntNow = cnt.get();
-		loadingStatus.setText(String.format("%0" + String.valueOf(targets).length() + "d/%" + String.valueOf(targets).length() + "d", cntNow, targets));
-		progress.setValue((int) (100.0 * cntNow / targets));
+		loadingStatus.setText(String.format("%0" + String.valueOf(targets).length() + "d/%" + String.valueOf(targets).length() + "d", cnt, targets));
+		progress.setValue((int) (100.0 * cnt / targets));
 	}
 
 	private synchronized static void setFailedFlag() {
@@ -166,7 +178,7 @@ public class Mp3TagChanger {
 				mp3file.setId3v2Tag(id3v2Tag);
 			}
 			tagChanger.accept(id3v2Tag, f);
-			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName()); //TODO : bulk save task later for performance...?
+			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName());
 		} catch (Exception e) {
 			setFailedFlag();
 			e.printStackTrace();
@@ -178,8 +190,7 @@ public class Mp3TagChanger {
 			});
 		} finally {
 			if(showProgress) {
-				cnt.incrementAndGet();
-				SwingUtilities.invokeLater(Mp3TagChanger::updateUI);
+				countQueue.offer(CNTFLAG);
 			}
 		}
 	}
