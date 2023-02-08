@@ -6,7 +6,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.stream.Collector;
 
@@ -37,7 +36,7 @@ public class Mp3TagChanger {
 	private static final char[] stringArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvxyz0123456789".toCharArray();
 	
 	private static boolean overwrite = false;
-	private static AtomicLong cnt = new AtomicLong(0L);
+	private static long cnt = 0L;
 	private static JLabel loadingStatus;
 	private static JProgressBar progress;
 	private static JFrame loadingFrame;
@@ -166,9 +165,8 @@ public class Mp3TagChanger {
 		
 	}
 	private static void updateUI() {
-		long cntNow = cnt.get();
-		loadingStatus.setText(String.format("%0" + String.valueOf(targets).length() + "d/%" + String.valueOf(targets).length() + "d", cntNow, targets));
-		progress.setValue((int) (100.0 * cntNow / targets));
+		loadingStatus.setText(String.format("%0" + String.valueOf(targets).length() + "d/%" + String.valueOf(targets).length() + "d", ++cnt, targets));
+		progress.setValue((int) (100.0 * cnt / targets));
 	}
 
 	private synchronized static void setFailedFlag() {
@@ -198,7 +196,6 @@ public class Mp3TagChanger {
 				dialog.dispose();
 			});
 		} finally {
-			cnt.incrementAndGet();
 			SwingUtilities.invokeLater(Mp3TagChanger::updateUI);
 		}
 	}
