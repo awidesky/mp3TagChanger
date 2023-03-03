@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.BiConsumer;
@@ -95,16 +97,17 @@ public class Mp3TagChanger {
 		
 		SwingUtilities.invokeLater(Mp3TagChanger::showProgress);
 		
-		long startTime = System.currentTimeMillis();
+		Instant startTime = Instant.now();
 		Arrays.stream(flist).parallel().filter(File::isFile).filter(Mp3TagChanger::isMp3).forEach(Mp3TagChanger::setTag);
-		long time = System.currentTimeMillis() - startTime;
+		Duration diff = Duration.between(startTime, Instant.now());
 		
 		if (!failedFlag) {
 			SwingUtilities.invokeAndWait(() -> {
 				final JDialog dialog = new JDialog();
 				dialog.setAlwaysOnTop(true);
 				JOptionPane.showMessageDialog(dialog,
-						"Task done in " + formatMilliSecond(time) + "\nChanged files are in following folder :\n" + saveDir.getAbsolutePath(), "done!",
+						"Task done in " + String.format("%d min %d sec", diff.toMinutes(), diff.toSecondsPart())
+						+ "\nChanged files are in following folder :\n" + saveDir.getAbsolutePath(), "done!",
 						JOptionPane.INFORMATION_MESSAGE);
 				dialog.dispose();
 			});
@@ -127,18 +130,6 @@ public class Mp3TagChanger {
 		System.out.println("\t\t\t\t\tDefault is \"-\", so mp3 file name would be like : \"The Beatles - Let it be.mp3\"\n");
 		System.out.println("\t--overwrite\tOvewrite existing mp3 tag(title, artist, album)\n");
 		System.out.println("\t--random\tSet mp3 tag(title, artist, album) to random meaningless text\n");
-	}
-	
-	private static String formatMilliSecond(long ms) {
-		if(ms % 1000 != 0) {
-			return ms + "ms";
-		} else if((ms /= 1000) % 60 != 0) {
-			return ms + "sec";
-		} else if((ms /= 60) % 60 != 0) {
-			return ms + "min";
-		} else {
-			return ms/60 + "hour";
-		}
 	}
 	
 	private static void showProgress() {
