@@ -3,10 +3,12 @@ package mp3TagChanger;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.stream.Collector;
@@ -22,6 +24,7 @@ import javax.swing.SwingUtilities;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.ID3v23Tag;
 import com.mpatric.mp3agic.Mp3File;
+import com.mpatric.mp3agic.NotSupportedException;
 
 public class Mp3TagChanger {
 
@@ -98,7 +101,19 @@ public class Mp3TagChanger {
 		SwingUtilities.invokeLater(Mp3TagChanger::showProgress);
 		
 		Instant startTime = Instant.now();
-		Arrays.stream(flist).parallel().filter(File::isFile).filter(Mp3TagChanger::isMp3).forEach(Mp3TagChanger::setTag);
+		Arrays.stream(flist).parallel().filter(File::isFile).filter(Mp3TagChanger::isMp3).map(Mp3TagChanger::setTag).filter(Objects::nonNull)
+			.forEach(f -> {
+				try {
+					f.save(saveDir.getAbsolutePath() + File.separator + f.getFilename().substring(f.getFilename().lastIndexOf(File.separator) + 1));
+				} catch (NotSupportedException | IOException e) {
+					SwingUtilities.invokeLater(() -> {
+						final JDialog dialog = new JDialog();
+						dialog.setAlwaysOnTop(true);
+						JOptionPane.showMessageDialog(dialog, e.getMessage(), "Save Error! : " + f.getFilename(), JOptionPane.ERROR_MESSAGE);
+						dialog.dispose();
+					});
+				}
+			});
 		Duration diff = Duration.between(startTime, Instant.now());
 		
 		if (!failedFlag) {
@@ -164,7 +179,7 @@ public class Mp3TagChanger {
 		failedFlag = true;
 	}
 	
-	private static void setTag(File f) { 
+	private static Mp3File setTag(File f) { 
 		try {
 			Mp3File mp3file = new Mp3File(f); //https://stackoverflow.com/questions/32820663/changing-the-title-property-of-mp3-file-using-java-api
 			ID3v2 id3v2Tag;
@@ -176,16 +191,17 @@ public class Mp3TagChanger {
 				mp3file.setId3v2Tag(id3v2Tag);
 			}
 			tagChanger.accept(id3v2Tag, f);
-			mp3file.save(saveDir.getAbsolutePath() + File.separator + f.getName());
+			return mp3file;
 		} catch (Exception e) {
 			setFailedFlag();
 			e.printStackTrace();
 			SwingUtilities.invokeLater(() -> {
 				final JDialog dialog = new JDialog();
 				dialog.setAlwaysOnTop(true);
-				JOptionPane.showMessageDialog(dialog, e.getMessage(), "Error! : " + f.getName(), JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(dialog, e.getMessage(), "Tag change Error! : " + f.getName(), JOptionPane.ERROR_MESSAGE);
 				dialog.dispose();
 			});
+			return null;
 		} finally {
 			SwingUtilities.invokeLater(Mp3TagChanger::updateUI);
 		}
