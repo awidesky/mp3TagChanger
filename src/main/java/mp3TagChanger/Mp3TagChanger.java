@@ -121,7 +121,7 @@ public class Mp3TagChanger {
 				final JDialog dialog = new JDialog();
 				dialog.setAlwaysOnTop(true);
 				JOptionPane.showMessageDialog(dialog,
-						"Task done in " + String.format("%d min %d sec", diff.toMinutes(), diff.toSecondsPart())
+						"Task done in " + String.format("%d min %d.%03d sec", diff.toMinutes(), diff.toSecondsPart(), diff.toMillisPart()) // TODO : milisecend
 						+ "\nChanged files are in following folder :\n" + saveDir.getAbsolutePath(), "done!",
 						JOptionPane.INFORMATION_MESSAGE);
 				dialog.dispose();
