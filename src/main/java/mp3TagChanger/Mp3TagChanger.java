@@ -114,14 +114,14 @@ public class Mp3TagChanger {
 					});
 				}
 			});
-		Duration diff = Duration.between(startTime, Instant.now());
+		long milli = Duration.between(startTime, Instant.now()).toMillis();
 		
 		if (!failedFlag) {
 			SwingUtilities.invokeAndWait(() -> {
 				final JDialog dialog = new JDialog();
 				dialog.setAlwaysOnTop(true);
 				JOptionPane.showMessageDialog(dialog,
-						"Task done in " + String.format("%d min %d.%03d sec", diff.toMinutes(), diff.toSecondsPart(), diff.toMillisPart()) // TODO : milisecend
+						"Task done in " + String.format("%d min %d.%03d sec",  milli / (60 * 1000), (milli / 1000) % 60, milli % 1000)
 						+ "\nChanged files are in following folder :\n" + saveDir.getAbsolutePath(), "done!",
 						JOptionPane.INFORMATION_MESSAGE);
 				dialog.dispose();
