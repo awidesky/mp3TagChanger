@@ -52,7 +52,7 @@ public class Mp3TagChanger {
 		if(args.length != 0) {
 			for(String str : args) {
 				if(str.startsWith("--artistIndex=")) {
-				artistIndex = Integer.parseInt(str.split("=")[1]);
+					artistIndex = Integer.parseInt(str.split("=")[1]);
 				} else if(str.startsWith("--artistDelimiter=")) {
 					if(str.split("=").length != 2 || (artistDelimiter = str.split("=")[1]) == null) {
 						System.err.println("Invalid use of artistDelimiter : " + str);
